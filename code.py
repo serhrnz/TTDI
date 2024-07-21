@@ -207,7 +207,7 @@ def plot_radar_chart(data, group1_name, group2_name):
     ]
     
     # Filtrar las columnas por los índices que contienen al menos una parte de los strings en 'keywords'
-    filtered_labels = data.index[data.index.str.contains('|'.join(keywords),case=False)]
+    filtered_labels = data.index[data.index.str.contains('|'.join(keywords), case=False)]
 
     num_vars = len(filtered_labels)
 
@@ -216,25 +216,31 @@ def plot_radar_chart(data, group1_name, group2_name):
     original_labels = [label.split(', ')[0] for label in original_labels]
 
     angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+    angles += angles[:1]  # Cerrar el ciclo
+
+    # Completar los datos para que el gráfico radar sea un ciclo cerrado
+    group1_scores = data.loc[filtered_labels, f'Score {group1_name}'].tolist()
+    group1_scores += group1_scores[:1]
+    group2_scores = data.loc[filtered_labels, f'Score {group2_name}'].tolist()
+    group2_scores += group2_scores[:1]
 
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-    ax.fill(angles, data.loc[filtered_labels, f'Score {group1_name}'], alpha=0.1, color='blue')
-    ax.fill(angles, data.loc[filtered_labels, f'Score {group2_name}'], alpha=0.1, color='red')
+    
+    ax.fill(angles, group1_scores, alpha=0.1, color='blue', label=group1_name)
+    ax.fill(angles, group2_scores, alpha=0.1, color='red', label=group2_name)
 
     # Trazar líneas de los datos
-    ax.plot(angles, data.loc[filtered_labels, f'Score {group1_name}'], color='blue', linewidth=2, linestyle='solid')
-    ax.plot(angles, data.loc[filtered_labels, f'Score {group2_name}'], color='red', linewidth=2, linestyle='solid')
+    ax.plot(angles, group1_scores, color='blue', linewidth=2, linestyle='solid')
+    ax.plot(angles, group2_scores, color='red', linewidth=2, linestyle='solid')
 
     ax.set_ylim(0, 7)  # Ajustar el rango del eje radial según tus datos específicos
 
-    ax.set_thetagrids(np.degrees(angles), original_labels)
+    ax.set_thetagrids(np.degrees(angles[:-1]), original_labels)
     ax.set_title(f'Comparación de los pilares del Travel & Tourism Development Index entre {group1_name} y {group2_name}', y=1.08)  # Ajustar 'y' para espacio entre título y gráfico
 
-    ax.legend([group1_name, group2_name], loc='upper right', bbox_to_anchor=(1.3, 1))
+    ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1))
 
     plt.show()
-
-
 
 # Mostrar widgets con nombres por defecto
 group_name_input.value = group1_name
